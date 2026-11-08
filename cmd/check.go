@@ -15,7 +15,7 @@ import (
 var checkCmd = &cobra.Command{
 	Use:     "check",
 	Aliases: []string{"env", "doctor"},
-	Short:   "Check local workstation environment and software dependencies",
+	Short:   "Check local workspace environment and software dependencies",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		out := cmd.OutOrStdout()
 		server := GetServerURL()
@@ -43,7 +43,7 @@ var checkCmd = &cobra.Command{
 			})
 		}
 
-		style.PrintHeader(out, "SkillStack Workstation Diagnostics")
+		style.PrintHeader(out, "SkillStack Workspace Diagnostics")
 		style.PrintKeyValue(out, "Operating System", fmt.Sprintf("%s / %s", runtime.GOOS, runtime.GOARCH))
 		style.PrintKeyValue(out, "Go Compiler", goVer)
 		style.PrintKeyValue(out, "Git CLI", gitVer)
@@ -51,7 +51,7 @@ var checkCmd = &cobra.Command{
 		fmt.Fprintln(out)
 
 		if strings.HasPrefix(netStatus, "PASS") && goVer != "Not installed" {
-			style.PrintSuccess(out, "Workstation environment ready for Guided Projects.")
+			style.PrintSuccess(out, "Workspace environment ready for Guided Projects.")
 		} else {
 			style.PrintWarn(out, "Environment check completed with warnings. Verify Go installation and server connectivity.")
 		}

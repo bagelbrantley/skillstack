@@ -25,7 +25,7 @@ var loginCmd = &cobra.Command{
 		apiClient := client.NewClient(server)
 
 		if !IsJSONMode() {
-			style.PrintBanner(out, "Welcome to the SkillStack CLI!", "Local Workstation Guided Project Integration")
+			style.PrintBanner(out, "Welcome to the SkillStack CLI!", "Local Workspace Guided Project Integration")
 			fmt.Fprintln(out)
 			fmt.Fprintln(out, "Please navigate to:")
 			fmt.Fprintln(out, style.AccentStyle.Render(server+"/cli/login"))

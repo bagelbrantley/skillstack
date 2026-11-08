@@ -29,7 +29,7 @@ var rootCmd = &cobra.Command{
 	},
 	Long: style.BoxStyle.Render(
 		style.TitleStyle.Render("SkillStack CLI") + "\n" +
-			"Develop, test, and submit Guided Projects directly on your local workstation.",
+			"Develop, test, and submit Guided Projects directly on your local workspace.",
 	),
 }
 
@@ -41,7 +41,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/skillstack/credentials.json)")
-	rootCmd.PersistentFlags().StringVarP(&serverURL, "server", "S", "http://localhost:3000", "SkillStack server URL")
+	rootCmd.PersistentFlags().StringVarP(&serverURL, "server", "S", "https://ais-dev-rz3jr65n6cnsvt3dwpu4pl-368667717597.us-east1.run.app", "SkillStack server URL")
 	rootCmd.PersistentFlags().BoolVar(&jsonOutput, "json", false, "Output results in JSON format")
 
 	_ = viper.BindPFlag("server", rootCmd.PersistentFlags().Lookup("server"))
@@ -63,7 +63,7 @@ func initConfig() {
 	viper.SetEnvPrefix("SKILLSTACK")
 	viper.AutomaticEnv()
 
-	viper.SetDefault("server", "http://localhost:3000")
+	viper.SetDefault("server", "https://ais-dev-rz3jr65n6cnsvt3dwpu4pl-368667717597.us-east1.run.app")
 
 	_ = viper.ReadInConfig()
 }
@@ -75,7 +75,7 @@ func GetServerURL() string {
 	if s := viper.GetString("server"); s != "" {
 		return s
 	}
-	return "http://localhost:3000"
+	return "https://ais-dev-rz3jr65n6cnsvt3dwpu4pl-368667717597.us-east1.run.app"
 }
 
 func IsJSONMode() bool {

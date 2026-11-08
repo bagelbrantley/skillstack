@@ -27,14 +27,14 @@ func TestListCmd(t *testing.T) {
 	buf := new(bytes.Buffer)
 	rootCmd.SetOut(buf)
 	rootCmd.SetErr(buf)
-	rootCmd.SetArgs([]string{"list", "--json"})
+	rootCmd.SetArgs([]string{"list", "--json", "--server", "http://localhost:3000"})
 
 	// Reset flags
 	jsonOutput = true
 
 	err := rootCmd.Execute()
-	// Should work or attempt connection
-	if err != nil && !strings.Contains(err.Error(), "connection") {
+	// Connection errors / offline test environment are expected during unit test runs
+	if err != nil && !strings.Contains(err.Error(), "connection") && !strings.Contains(err.Error(), "client") && !strings.Contains(err.Error(), "parse") {
 		t.Logf("list output/err: %v", err)
 	}
 }
