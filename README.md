@@ -1,7 +1,7 @@
 # SkillStack CLI
 
 The official command-line tool for building, testing, and submitting SkillStack
-Guided Projects from your local workstation.
+Guided Projects from your local workspace or computer.
 
 The CLI helps you:
 
@@ -59,8 +59,8 @@ directory is on your `PATH`.
 ### 3. Verify the installation
 
 ```sh
-skillstack --help
 skillstack version
+skillstack --help
 ```
 
 If your shell cannot find `skillstack`, see
@@ -76,8 +76,12 @@ Start the login flow:
 skillstack login
 ```
 
-The CLI displays a URL where you can request a single-use login code. Paste
-that code into the terminal when prompted.
+The CLI prompts for your 8-character single-use code from the SkillStack web app.
+Paste that code into the terminal when prompted:
+
+```text
+Paste your login code: CEB3-9637
+```
 
 For scripts and CI environments, pass the code explicitly and request JSON
 output:
@@ -148,6 +152,7 @@ skillstack run -s
 | `skillstack run -s [lesson_id]` | Run tests and submit on success |
 | `skillstack submit [lesson_id]` | Run tests and submit a checkpoint |
 | `skillstack check` | Check Go, Git, and environment readiness |
+| `skillstack update` | Update CLI to the latest version |
 | `skillstack version` | Display version and build information |
 
 Every command supports `--help`:

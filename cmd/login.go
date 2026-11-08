@@ -24,16 +24,13 @@ var loginCmd = &cobra.Command{
 		server := GetServerURL()
 		apiClient := client.NewClient(server)
 
-		if !IsJSONMode() {
-			style.PrintBanner(out, "Welcome to the SkillStack CLI!", "Local Workspace Guided Project Integration")
-			fmt.Fprintln(out)
-			fmt.Fprintln(out, "Please navigate to:")
-			fmt.Fprintln(out, style.AccentStyle.Render(server+"/cli/login"))
-			fmt.Fprintln(out)
-		}
-
 		code := strings.TrimSpace(codeFlag)
 		if code == "" {
+			if !IsJSONMode() {
+				style.PrintBanner(out, "Welcome to the SkillStack CLI!", "Local Workspace Guided Project Integration")
+				fmt.Fprintln(out)
+				fmt.Fprintln(out, "Enter your 8-character code from the SkillStack web app (/cli/login or Account Settings):")
+			}
 			if IsJSONMode() {
 				return fmt.Errorf("in --json mode, please pass --code flag")
 			}
