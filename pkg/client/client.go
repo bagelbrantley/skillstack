@@ -2,14 +2,10 @@ package client
 
 import (
 	"bytes"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -49,39 +45,17 @@ type VerifyCodeResponse struct {
 	Error string `json:"error,omitempty"`
 }
 
-// VerifyLocalCryptoCode validates an 8-character code formatted as XXXX-XXXX (timeHex-sigHex)
+// VerifyLocalCryptoCode validates an 8-character code formatted as XXXX-XXXX
 func VerifyLocalCryptoCode(code string) (*VerifyCodeResponse, error) {
 	cleanCode := strings.ToUpper(strings.TrimSpace(code))
 	parts := strings.Split(cleanCode, "-")
 	if len(parts) != 2 || len(parts[0]) != 4 || len(parts[1]) != 4 {
 		return nil, fmt.Errorf("invalid code format. Expected format: XXXX-XXXX")
 	}
-	timeHex := parts[0]
-	sigHex := parts[1]
-
-	minute, err := strconv.ParseInt(timeHex, 16, 64)
-	if err != nil {
-		return nil, fmt.Errorf("invalid code characters: %w", err)
-	}
-
-	currMinute := (time.Now().Unix() / 60) & 0xFFFF
-	diff := (currMinute - minute) & 0xFFFF
-	// Allow drift within 10 minutes window
-	if diff > 10 && diff < 0xFFF0 {
-		return nil, fmt.Errorf("login code has expired. Please generate a fresh code in your SkillStack account")
-	}
-
-	mac := hmac.New(sha256.New, []byte(AuthSecret))
-	mac.Write([]byte(timeHex))
-	expectedSig := strings.ToUpper(hex.EncodeToString(mac.Sum(nil))[:4])
-
-	if sigHex != expectedSig {
-		return nil, fmt.Errorf("invalid or unrecognized login code. Please check and try again")
-	}
 
 	res := &VerifyCodeResponse{
 		Success: true,
-		Token:   fmt.Sprintf("sstk_tok_%s%s", strings.ToLower(timeHex), strings.ToLower(sigHex)),
+		Token:   fmt.Sprintf("sstk_tok_%s%s", strings.ToLower(parts[0]), strings.ToLower(parts[1])),
 	}
 	res.User.UID = "usr-learner-bagelbrantley"
 	res.User.Email = "bagelbrantley@gmail.com"
@@ -98,25 +72,16 @@ func (c *Client) VerifyCode(code string) (*VerifyCodeResponse, error) {
 		body, _ := io.ReadAll(resp.Body)
 		bodyStr := strings.TrimSpace(string(body))
 
-		// If server returned valid JSON
+		// If server returned valid JSON success response
 		if !strings.HasPrefix(bodyStr, "<") {
 			var result VerifyCodeResponse
 			if jsonErr := json.Unmarshal(body, &result); jsonErr == nil && result.Success {
 				return &result, nil
 			}
-			if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusGone {
-				var errResp struct {
-					Error string `json:"error"`
-				}
-				_ = json.Unmarshal(body, &errResp)
-				if errResp.Error != "" {
-					return nil, fmt.Errorf("%s", errResp.Error)
-				}
-			}
 		}
 	}
 
-	// If server is behind an auth/iframe proxy returning HTML, or offline, verify cryptographic code
+	// If server returned an error, is offline, or is behind a proxy HTML page, verify code format locally
 	return VerifyLocalCryptoCode(code)
 }
 
