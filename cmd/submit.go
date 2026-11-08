@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 
 	"github.com/bagelbrantley/skillstack/pkg/client"
@@ -18,21 +19,31 @@ var submitCmd = &cobra.Command{
 		server := GetServerURL()
 		apiClient := client.NewClient(server)
 
-		lessonID := "proj-lesson-1-1"
+		lessonID := DefaultCheckpoint1UUID
 		if len(args) > 0 {
 			lessonID = args[0]
 		}
 
 		workDir := "."
-		if _, err := exec.Command("test", "-d", "engine-kv").Output(); err == nil {
+		if _, err := os.Stat("engine-kv"); err == nil {
 			workDir = "engine-kv"
 		}
 
 		testPkg := "./internal/framer/..."
-		if lessonID == "proj-lesson-1-2" || lessonID == "1.2" || lessonID == "2" {
+		checkpointNum := "1.1"
+
+		if lessonID == DefaultCheckpoint2UUID || lessonID == "proj-lesson-1-2" || lessonID == "1.2" || lessonID == "2" {
+			lessonID = DefaultCheckpoint2UUID
 			testPkg = "./internal/storage/..."
-		} else if lessonID == "proj-lesson-2-1" || lessonID == "2.1" || lessonID == "3" {
+			checkpointNum = "1.2"
+		} else if lessonID == DefaultCheckpoint3UUID || lessonID == "proj-lesson-2-1" || lessonID == "2.1" || lessonID == "3" {
+			lessonID = DefaultCheckpoint3UUID
 			testPkg = "./internal/index/..."
+			checkpointNum = "2.1"
+		} else {
+			lessonID = DefaultCheckpoint1UUID
+			testPkg = "./internal/framer/..."
+			checkpointNum = "1.1"
 		}
 
 		execCmd := exec.Command("go", "test", "-v", testPkg)
@@ -56,9 +67,9 @@ var submitCmd = &cobra.Command{
 		}
 
 		subRes, err := apiClient.SubmitCheckpoint(client.SubmissionPayload{
-			ProjectID:        "project-kv-store",
+			ProjectID:        DefaultProjectUUID,
 			LessonID:         lessonID,
-			CheckpointNumber: "1.1",
+			CheckpointNumber: checkpointNum,
 			ExitCode:         exitCode,
 			Output:           outputStr,
 		})
@@ -73,8 +84,8 @@ var submitCmd = &cobra.Command{
 		style.PrintBanner(out, "Checkpoint Submitted & Verified!", fmt.Sprintf("+%d XP Awarded", subRes.XPAwarded))
 		style.PrintSuccess(out, subRes.Message)
 		style.PrintKeyValue(out, "Account Email", subRes.User)
-		style.PrintKeyValue(out, "Project", subRes.ProjectID)
-		style.PrintKeyValue(out, "Lesson", subRes.LessonID)
+		style.PrintKeyValue(out, "Project UUID", subRes.ProjectID)
+		style.PrintKeyValue(out, "Lesson UUID", subRes.LessonID)
 		style.PrintKeyValue(out, "Timestamp", subRes.Timestamp)
 		return nil
 	},

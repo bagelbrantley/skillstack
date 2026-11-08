@@ -116,7 +116,7 @@ type GuidedProject struct {
 
 var defaultProjectsList = []GuidedProject{
 	{
-		ID:               "project-kv-store",
+		ID:               "7a2b9c3d-4e5f-41a2-9b8c-1d2e3f4a5b6c",
 		Slug:             "distributed-key-value-engine",
 		Title:            "Distributed Key-Value Storage Engine",
 		Level:            "Advanced",
@@ -126,41 +126,41 @@ var defaultProjectsList = []GuidedProject{
 		CheckpointsCount: 3,
 		Chapters: []Chapter{
 			{
-				ID:     "proj-ch-wal",
+				ID:     "b1c2d3e4-5f6a-4b7c-8d9e-0f1a2b3c4d5e",
 				Number: 1,
 				Title:  "Log-Structured Storage & WAL Framing",
 				Lessons: []Lesson{
 					{
-						ID:              "proj-lesson-1-1",
+						ID:              "c8d9e0f1-2a3b-4c5d-9e8f-7a6b5c4d3e2f",
 						Number:          "1.1",
 						Title:           "Binary Record Framing & CRC32 Validation",
 						CheckpointTitle: "Checkpoint 1: Binary Record Encoder & CRC32 Checksum",
-						CLICommand:      "skillstack run proj-lesson-1-1",
+						CLICommand:      "skillstack run c8d9e0f1-2a3b-4c5d-9e8f-7a6b5c4d3e2f",
 						Instructions:    "Open internal/framer/record.go in your local editor. Implement WriteRecord() to write 4 bytes CRC32, 4 bytes key length, 8 bytes value length, followed by key and value payloads. Validate checksum integrity on read.",
 						ExpectedOutput:  "PASS\nok  engine-kv/internal/framer 0.012s\n[SkillStack CLI] Checkpoint 1 verification: SUCCESS.",
 					},
 					{
-						ID:              "proj-lesson-1-2",
+						ID:              "f1a2b3c4-5d6e-4f7a-8b9c-0d1e2f3a4b5c",
 						Number:          "1.2",
 						Title:           "Segment Rotation and Fsync Durability",
 						CheckpointTitle: "Checkpoint 2: Segment Size Limits & fsync Policies",
-						CLICommand:      "skillstack run proj-lesson-1-2",
+						CLICommand:      "skillstack run f1a2b3c4-5d6e-4f7a-8b9c-0d1e2f3a4b5c",
 						Instructions:    "Implement auto-rotation in internal/storage/segment.go when active segment reaches 16MB. Ensure OS directory sync occurs on new segment allocation.",
 						ExpectedOutput:  "PASS\nok  engine-kv/internal/storage 0.18s\n[SkillStack CLI] Checkpoint 2 verification: SUCCESS.",
 					},
 				},
 			},
 			{
-				ID:     "proj-ch-index",
+				ID:     "e5f6a7b8-9c0d-1e2f-3a4b-5c6d7e8f9a0b",
 				Number: 2,
 				Title:  "In-Memory Indexing & Compaction",
 				Lessons: []Lesson{
 					{
-						ID:              "proj-lesson-2-1",
+						ID:              "a9b8c7d6-5e4f-3a2b-1c0d-9e8f7a6b5c4d",
 						Number:          "2.1",
 						Title:           "In-Memory Key Directory & Point Lookups",
 						CheckpointTitle: "Checkpoint 3: In-Memory Key Offset Hash Index",
-						CLICommand:      "skillstack run proj-lesson-2-1",
+						CLICommand:      "skillstack run a9b8c7d6-5e4f-3a2b-1c0d-9e8f7a6b5c4d",
 						Instructions:    "Implement the in-memory key directory mapping string keys to file segment offsets. Provide O(1) point lookups without requiring full-disk linear scans.",
 						ExpectedOutput:  "PASS\nok  engine-kv/internal/index 0.02s\n[SkillStack CLI] Checkpoint 3 verification: SUCCESS.",
 					},

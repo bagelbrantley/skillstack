@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -15,15 +14,13 @@ var initCmd = &cobra.Command{
 	Short:   "Initialize local workspace files for a Guided Project",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		out := cmd.OutOrStdout()
-		projectID := "project-kv-store"
+		projectID := "7a2b9c3d-4e5f-41a2-9b8c-1d2e3f4a5b6c"
 		if len(args) > 0 {
 			projectID = args[0]
 		}
 
+		// Initialize files directly in the current working directory (.)
 		dir := "."
-		if projectID == "project-kv-store" || projectID == "distributed-key-value-engine" {
-			dir = "engine-kv"
-		}
 
 		if err := os.MkdirAll(filepath.Join(dir, "internal", "framer"), 0755); err != nil {
 			return err
@@ -34,13 +31,6 @@ var initCmd = &cobra.Command{
 		if err := os.MkdirAll(filepath.Join(dir, "internal", "index"), 0755); err != nil {
 			return err
 		}
-
-		// Write go.mod
-		goModContent := `module engine-kv
-
-go 1.22
-`
-		_ = os.WriteFile(filepath.Join(dir, "go.mod"), []byte(goModContent), 0644)
 
 		// Write internal/framer/record.go
 		recordGoContent := `package framer
@@ -254,26 +244,16 @@ func TestKeyDirectory(t *testing.T) {
 `
 		_ = os.WriteFile(filepath.Join(dir, "internal", "index", "key_directory_test.go"), []byte(indexTestGoContent), 0644)
 
-		// Write .skillstack.json
-		metaContent := `{
-  "project_id": "project-kv-store",
-  "name": "Distributed Key-Value Storage Engine",
-  "checkpoints": ["proj-lesson-1-1", "proj-lesson-1-2", "proj-lesson-2-1"]
-}
-`
-		_ = os.WriteFile(filepath.Join(dir, ".skillstack.json"), []byte(metaContent), 0644)
-
 		if IsJSONMode() {
 			return style.PrintJSON(out, map[string]interface{}{
 				"initialized": true,
-				"directory":   dir,
+				"directory":   ".",
 				"project_id":  projectID,
 			})
 		}
 
-		style.PrintSuccess(out, fmt.Sprintf("Initialized Guided Project '%s' in ./%s/", projectID, dir))
-		style.PrintKeyValue(out, "Starter Directory", "./"+dir)
-		style.PrintKeyValue(out, "Next Step", fmt.Sprintf("cd %s && skillstack run", dir))
+		style.PrintSuccess(out, "Initialized Guided Project starter workspace files in current directory.")
+		style.PrintKeyValue(out, "Next Step", "skillstack run")
 		return nil
 	},
 }

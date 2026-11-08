@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	"github.com/bagelbrantley/skillstack/pkg/client"
@@ -13,6 +12,13 @@ import (
 )
 
 var submitFlag bool
+
+const (
+	DefaultProjectUUID    = "7a2b9c3d-4e5f-41a2-9b8c-1d2e3f4a5b6c"
+	DefaultCheckpoint1UUID = "c8d9e0f1-2a3b-4c5d-9e8f-7a6b5c4d3e2f"
+	DefaultCheckpoint2UUID = "f1a2b3c4-5d6e-4f7a-8b9c-0d1e2f3a4b5c"
+	DefaultCheckpoint3UUID = "a9b8c7d6-5e4f-3a2b-1c0d-9e8f7a6b5c4d"
+)
 
 var runCmd = &cobra.Command{
 	Use:   "run [lesson_uuid]",
@@ -23,24 +29,31 @@ var runCmd = &cobra.Command{
 		server := GetServerURL()
 		apiClient := client.NewClient(server)
 
-		lessonID := "proj-lesson-1-1"
+		lessonID := DefaultCheckpoint1UUID
 		if len(args) > 0 {
 			lessonID = args[0]
 		}
 
-		// Detect working directory (check if inside engine-kv or current dir)
 		workDir := "."
 		if _, err := os.Stat("engine-kv"); err == nil {
 			workDir = "engine-kv"
 		}
 
 		testPkg := "./internal/framer/..."
-		if lessonID == "proj-lesson-1-2" || lessonID == "1.2" || lessonID == "2" {
+		checkpointNum := "1.1"
+
+		if lessonID == DefaultCheckpoint2UUID || lessonID == "proj-lesson-1-2" || lessonID == "1.2" || lessonID == "2" {
+			lessonID = DefaultCheckpoint2UUID
 			testPkg = "./internal/storage/..."
-		} else if lessonID == "proj-lesson-2-1" || lessonID == "2.1" || lessonID == "3" {
+			checkpointNum = "1.2"
+		} else if lessonID == DefaultCheckpoint3UUID || lessonID == "proj-lesson-2-1" || lessonID == "2.1" || lessonID == "3" {
+			lessonID = DefaultCheckpoint3UUID
 			testPkg = "./internal/index/..."
-		} else if lessonID == "proj-lesson-1-1" || lessonID == "1.1" || lessonID == "1" {
+			checkpointNum = "2.1"
+		} else {
+			lessonID = DefaultCheckpoint1UUID
 			testPkg = "./internal/framer/..."
+			checkpointNum = "1.1"
 		}
 
 		// Execute local test command
@@ -86,9 +99,9 @@ var runCmd = &cobra.Command{
 			}
 
 			subRes, err := apiClient.SubmitCheckpoint(client.SubmissionPayload{
-				ProjectID:        "project-kv-store",
+				ProjectID:        DefaultProjectUUID,
 				LessonID:         lessonID,
-				CheckpointNumber: "1.1",
+				CheckpointNumber: checkpointNum,
 				ExitCode:         exitCode,
 				Output:           outputStr,
 			})
@@ -100,34 +113,18 @@ var runCmd = &cobra.Command{
 				return style.PrintJSON(out, subRes)
 			}
 
-			style.PrintSuccess(out, subRes.Message)
-			style.PrintKeyValue(out, "Account", subRes.User)
+			style.PrintSuccess(out, fmt.Sprintf("Checkpoint %s successfully submitted!", checkpointNum))
+			style.PrintKeyValue(out, "Project UUID", subRes.ProjectID)
+			style.PrintKeyValue(out, "Lesson UUID", subRes.LessonID)
 			style.PrintKeyValue(out, "XP Awarded", fmt.Sprintf("+%d XP", subRes.XPAwarded))
-			style.PrintKeyValue(out, "Verified At", subRes.Timestamp)
-			return nil
+			style.PrintKeyValue(out, "Timestamp", subRes.Timestamp)
 		}
 
-		if IsJSONMode() {
-			return style.PrintJSON(out, map[string]interface{}{
-				"lesson_id": lessonID,
-				"exit_code": exitCode,
-				"output":    outputStr,
-				"passed":    exitCode == 0,
-			})
-		}
-
-		if exitCode == 0 {
-			fmt.Fprintln(out)
-			style.PrintKeyValue(out, "Ready to Submit", "Run `skillstack submit` or `skillstack run -s`")
-		}
 		return nil
 	},
 }
 
 func init() {
-	runCmd.Flags().BoolVarP(&submitFlag, "submit", "s", false, "Run checks and submit checkpoint in one command")
+	runCmd.Flags().BoolVarP(&submitFlag, "submit", "s", false, "Submit verified progress to SkillStack after tests pass")
 	rootCmd.AddCommand(runCmd)
 }
-
-// Suppress unused import warning if filepath is needed
-var _ = filepath.Join
