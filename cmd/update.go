@@ -27,16 +27,19 @@ var updateCmd = &cobra.Command{
 		}
 
 		if !IsJSONMode() {
-			style.PrintHeader(out, "Updating SkillStack CLI")
-			fmt.Fprintln(out, "Fetching latest release directly from GitHub...")
+			style.PrintHeader(os.Stdout, "Updating SkillStack CLI")
+			fmt.Fprintln(os.Stdout, "Fetching latest release directly from GitHub...")
+			_ = os.Stdout.Sync()
 		}
 
+		goExe := findGoBinary()
+
 		// Use GOPROXY=direct to bypass proxy.golang.org caching
-		c := exec.Command("go", "install", "github.com/bagelbrantley/skillstack@latest")
+		c := exec.Command(goExe, "install", "github.com/bagelbrantley/skillstack@latest")
 		c.Env = append(os.Environ(), "GOPROXY=direct")
 		if !IsJSONMode() {
-			c.Stdout = cmd.OutOrStdout()
-			c.Stderr = cmd.ErrOrStderr()
+			c.Stdout = os.Stdout
+			c.Stderr = os.Stderr
 		}
 
 		err := c.Run()
@@ -49,10 +52,10 @@ var updateCmd = &cobra.Command{
 		}
 
 		// Determine where Go installed the new binary
-		goBinOut, _ := exec.Command("go", "env", "GOBIN").Output()
+		goBinOut, _ := exec.Command(goExe, "env", "GOBIN").Output()
 		goBin := strings.TrimSpace(string(goBinOut))
 		if goBin == "" {
-			goPathOut, _ := exec.Command("go", "env", "GOPATH").Output()
+			goPathOut, _ := exec.Command(goExe, "env", "GOPATH").Output()
 			goPath := strings.TrimSpace(string(goPathOut))
 			if goPath == "" {
 				home, _ := os.UserHomeDir()
@@ -119,6 +122,26 @@ func copyFile(src, dst string) error {
 	out.Close()
 
 	return os.Rename(tmpDst, dst)
+}
+
+func findGoBinary() string {
+	if p, err := exec.LookPath("go"); err == nil {
+		return p
+	}
+	home, _ := os.UserHomeDir()
+	candidates := []string{
+		"/usr/local/go/bin/go",
+		"/root/.local/opt/go/bin/go",
+		filepath.Join(home, "go", "bin", "go"),
+		filepath.Join(home, ".local", "opt", "go", "bin", "go"),
+		"/usr/bin/go",
+	}
+	for _, c := range candidates {
+		if _, err := os.Stat(c); err == nil {
+			return c
+		}
+	}
+	return "go"
 }
 
 func init() {

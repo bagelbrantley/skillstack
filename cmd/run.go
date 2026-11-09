@@ -57,7 +57,8 @@ var runCmd = &cobra.Command{
 		}
 
 		// Execute local test command
-		execCmd := exec.Command("go", "test", "-v", testPkg)
+		goExe := FindGoBinary()
+		execCmd := exec.Command(goExe, "test", "-v", testPkg)
 		execCmd.Dir = workDir
 		outputBytes, err := execCmd.CombinedOutput()
 		exitCode := 0

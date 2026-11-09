@@ -79,5 +79,5 @@ func GetServerURL() string {
 }
 
 func IsJSONMode() bool {
-	return jsonOutput || viper.GetBool("json")
+	return jsonOutput
 }

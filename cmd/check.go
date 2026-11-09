@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 	"net/http"
-	"os/exec"
+	"os"
 	"runtime"
 	"strings"
 	"time"
@@ -17,11 +17,10 @@ var checkCmd = &cobra.Command{
 	Aliases: []string{"env", "doctor"},
 	Short:   "Check local workspace environment and software dependencies",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		out := cmd.OutOrStdout()
 		server := GetServerURL()
 
-		goVer := getCommandOutput("go", "version")
-		gitVer := getCommandOutput("git", "--version")
+		goVer := GetSystemCommandOutput("go", "version")
+		gitVer := GetSystemCommandOutput("git", "--version")
 
 		netStatus := "PASS"
 		client := &http.Client{Timeout: 3 * time.Second}
@@ -33,7 +32,7 @@ var checkCmd = &cobra.Command{
 		}
 
 		if IsJSONMode() {
-			return style.PrintJSON(out, map[string]interface{}{
+			return style.PrintJSON(os.Stdout, map[string]interface{}{
 				"os":            runtime.GOOS,
 				"arch":          runtime.GOARCH,
 				"go_version":    goVer,
@@ -43,29 +42,21 @@ var checkCmd = &cobra.Command{
 			})
 		}
 
-		style.PrintHeader(out, "SkillStack Workspace Diagnostics")
-		style.PrintKeyValue(out, "Operating System", fmt.Sprintf("%s / %s", runtime.GOOS, runtime.GOARCH))
-		style.PrintKeyValue(out, "Go Compiler", goVer)
-		style.PrintKeyValue(out, "Git CLI", gitVer)
-		style.PrintKeyValue(out, "SkillStack Server", fmt.Sprintf("%s [%s]", server, netStatus))
-		fmt.Fprintln(out)
+		style.PrintHeader(os.Stdout, "SkillStack Workspace Diagnostics")
+		style.PrintKeyValue(os.Stdout, "Operating System", fmt.Sprintf("%s / %s", runtime.GOOS, runtime.GOARCH))
+		style.PrintKeyValue(os.Stdout, "Go Compiler", goVer)
+		style.PrintKeyValue(os.Stdout, "Git CLI", gitVer)
+		style.PrintKeyValue(os.Stdout, "SkillStack Server", fmt.Sprintf("%s [%s]", server, netStatus))
+		fmt.Fprintln(os.Stdout)
 
 		if strings.HasPrefix(netStatus, "PASS") && goVer != "Not installed" {
-			style.PrintSuccess(out, "Workspace environment ready for Guided Projects.")
+			style.PrintSuccess(os.Stdout, "Workspace environment ready for Guided Projects.")
 		} else {
-			style.PrintWarn(out, "Environment check completed with warnings. Verify Go installation and server connectivity.")
+			style.PrintWarn(os.Stdout, "Environment check completed with warnings. Verify Go installation and server connectivity.")
 		}
+		_ = os.Stdout.Sync()
 		return nil
 	},
-}
-
-func getCommandOutput(name string, args ...string) string {
-	cmd := exec.Command(name, args...)
-	bytes, err := cmd.Output()
-	if err != nil {
-		return "Not installed"
-	}
-	return strings.TrimSpace(string(bytes))
 }
 
 func init() {
