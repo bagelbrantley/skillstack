@@ -45,6 +45,8 @@ type VerifyCodeResponse struct {
 	Error string `json:"error,omitempty"`
 }
 
+var usedLocalCodes = make(map[string]bool)
+
 // VerifyLocalCryptoCode validates an 8-character code formatted as XXXX-XXXX
 func VerifyLocalCryptoCode(code string) (*VerifyCodeResponse, error) {
 	cleanCode := strings.ToUpper(strings.TrimSpace(code))
@@ -52,6 +54,12 @@ func VerifyLocalCryptoCode(code string) (*VerifyCodeResponse, error) {
 	if len(parts) != 2 || len(parts[0]) != 4 || len(parts[1]) != 4 {
 		return nil, fmt.Errorf("invalid code format. Expected format: XXXX-XXXX")
 	}
+
+	if usedLocalCodes[cleanCode] {
+		return nil, fmt.Errorf("this login code has already been used. Please generate a fresh code in your account")
+	}
+
+	usedLocalCodes[cleanCode] = true
 
 	res := &VerifyCodeResponse{
 		Success: true,
@@ -72,16 +80,27 @@ func (c *Client) VerifyCode(code string) (*VerifyCodeResponse, error) {
 		body, _ := io.ReadAll(resp.Body)
 		bodyStr := strings.TrimSpace(string(body))
 
-		// If server returned valid JSON success response
+		// If server returned valid JSON response
 		if !strings.HasPrefix(bodyStr, "<") {
+			if resp.StatusCode == http.StatusBadRequest || resp.StatusCode == http.StatusGone {
+				var errResp struct {
+					Error string `json:"error"`
+				}
+				if jsonErr := json.Unmarshal(body, &errResp); jsonErr == nil && errResp.Error != "" {
+					return nil, fmt.Errorf("%s", errResp.Error)
+				}
+			}
+
 			var result VerifyCodeResponse
 			if jsonErr := json.Unmarshal(body, &result); jsonErr == nil && result.Success {
+				cleanCode := strings.ToUpper(strings.TrimSpace(code))
+				usedLocalCodes[cleanCode] = true
 				return &result, nil
 			}
 		}
 	}
 
-	// If server returned an error, is offline, or is behind a proxy HTML page, verify code format locally
+	// If server is offline or behind a proxy HTML page, verify code format locally
 	return VerifyLocalCryptoCode(code)
 }
 

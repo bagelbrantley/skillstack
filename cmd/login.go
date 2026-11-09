@@ -13,7 +13,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var codeFlag string
+var (
+	codeFlag  string
+	forceFlag bool
+)
 
 var loginCmd = &cobra.Command{
 	Use:   "login",
@@ -23,6 +26,24 @@ var loginCmd = &cobra.Command{
 		out := cmd.OutOrStdout()
 		server := GetServerURL()
 		apiClient := client.NewClient(server)
+
+		// Check if already authenticated locally
+		if !forceFlag {
+			if existing, err := config.LoadCredentials(); err == nil && existing != nil && existing.Token != "" {
+				if IsJSONMode() {
+					return style.PrintJSON(out, map[string]interface{}{
+						"already_logged_in": true,
+						"user":              existing.Email,
+						"message":           "Already logged in. Run `skillstack logout` to sign out first or pass --force.",
+					})
+				}
+				style.PrintWarn(out, fmt.Sprintf("You are already logged in as %s.", existing.Email))
+				style.PrintKeyValue(out, "Config File", "~/.config/skillstack/credentials.json")
+				fmt.Fprintln(out)
+				fmt.Fprintln(out, style.MutedStyle.Render("Run `skillstack logout` to sign out first, or pass `--force` to re-authenticate."))
+				return nil
+			}
+		}
 
 		code := strings.TrimSpace(codeFlag)
 		if code == "" {
@@ -81,5 +102,6 @@ var loginCmd = &cobra.Command{
 
 func init() {
 	loginCmd.Flags().StringVarP(&codeFlag, "code", "c", "", "Login code from SkillStack web app")
+	loginCmd.Flags().BoolVarP(&forceFlag, "force", "f", false, "Force re-authentication even if already logged in")
 	rootCmd.AddCommand(loginCmd)
 }
