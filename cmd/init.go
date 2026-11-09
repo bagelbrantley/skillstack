@@ -9,9 +9,8 @@ import (
 )
 
 var initCmd = &cobra.Command{
-	Use:     "init [project_id]",
-	Aliases: []string{"clone"},
-	Short:   "Initialize local workspace files for a Guided Project",
+	Use:   "init [project_id]",
+	Short: "Initialize local workspace files for a Guided Project",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		out := cmd.OutOrStdout()
 		projectID := "7a2b9c3d-4e5f-41a2-9b8c-1d2e3f4a5b6c"
