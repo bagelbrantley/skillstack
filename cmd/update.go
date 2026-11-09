@@ -66,7 +66,12 @@ var updateCmd = &cobra.Command{
 		// If current running executable is outside GOBIN (e.g. /usr/local/bin or local ./bin), update it as well
 		if currentExe != "" && currentExe != installedBinary {
 			if _, err := os.Stat(installedBinary); err == nil {
-				_ = copyFile(installedBinary, currentExe)
+				if copyErr := copyFile(installedBinary, currentExe); copyErr != nil {
+					if !IsJSONMode() {
+						style.PrintWarn(out, fmt.Sprintf("Note: Could not automatically update active binary at %s: %v", currentExe, copyErr))
+						style.PrintWarn(out, fmt.Sprintf("Please copy %s to %s or update your PATH.", installedBinary, currentExe))
+					}
+				}
 			}
 		}
 
@@ -100,14 +105,20 @@ func copyFile(src, dst string) error {
 		return err
 	}
 
-	out, err := os.OpenFile(dst, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, info.Mode())
+	tmpDst := dst + ".tmp." + fmt.Sprintf("%d", os.Getpid())
+	out, err := os.OpenFile(tmpDst, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, info.Mode())
 	if err != nil {
 		return err
 	}
-	defer out.Close()
 
-	_, err = io.Copy(out, in)
-	return err
+	if _, err = io.Copy(out, in); err != nil {
+		out.Close()
+		_ = os.Remove(tmpDst)
+		return err
+	}
+	out.Close()
+
+	return os.Rename(tmpDst, dst)
 }
 
 func init() {

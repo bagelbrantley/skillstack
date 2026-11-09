@@ -48,18 +48,19 @@ var loginCmd = &cobra.Command{
 		code := strings.TrimSpace(codeFlag)
 		if code == "" {
 			if !IsJSONMode() {
-				style.PrintBanner(out, "Welcome to the SkillStack CLI!", "Local Workspace Guided Project Integration")
-				fmt.Fprintln(out)
-				fmt.Fprintln(out, "Enter your 8-character code from the SkillStack web app (/cli/login or Account Settings):")
+				style.PrintBanner(os.Stdout, "Welcome to the SkillStack CLI!", "Local Workspace Guided Project Integration")
+				fmt.Fprintln(os.Stdout)
+				fmt.Fprintln(os.Stdout, "Enter your 8-character code from the SkillStack web app (/cli/login or Account Settings):")
+				fmt.Fprint(os.Stdout, "Paste your login code: ")
+				_ = os.Stdout.Sync()
 			}
 			if IsJSONMode() {
-				return fmt.Errorf("in --json mode, please pass --code flag")
+				return fmt.Errorf("in --json mode, please pass --code flag (-c XXXX-XXXX)")
 			}
-			fmt.Fprint(out, "Paste your login code: ")
 			reader := bufio.NewReader(os.Stdin)
 			input, err := reader.ReadString('\n')
-			if err != nil {
-				return fmt.Errorf("failed to read login code: %w", err)
+			if err != nil && len(input) == 0 {
+				return fmt.Errorf("failed to read login code from terminal stdin: %w", err)
 			}
 			code = strings.TrimSpace(input)
 		}

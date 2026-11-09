@@ -20,7 +20,7 @@ var rootCmd = &cobra.Command{
 	Use:           "skillstack",
 	Short:         "skillstack - CLI for SkillStack Guided Projects",
 	SilenceUsage:  true,
-	SilenceErrors: true,
+	SilenceErrors: false,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		jsonOutput = viper.GetBool("json")
 		if s := viper.GetString("server"); s != "" {
