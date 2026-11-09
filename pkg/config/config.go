@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Credentials struct {
@@ -92,3 +93,45 @@ func ClearCredentials() error {
 	}
 	return nil
 }
+
+func GetUsedCodesPath() (string, error) {
+	dir, err := GetConfigDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "used_codes.json"), nil
+}
+
+func IsCodeUsedLocally(code string) bool {
+	path, err := GetUsedCodesPath()
+	if err != nil {
+		return false
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return false
+	}
+	var used map[string]bool
+	if err := json.Unmarshal(data, &used); err != nil {
+		return false
+	}
+	return used[strings.ToUpper(strings.TrimSpace(code))]
+}
+
+func MarkCodeUsedLocally(code string) error {
+	path, err := GetUsedCodesPath()
+	if err != nil {
+		return err
+	}
+	used := make(map[string]bool)
+	if data, err := os.ReadFile(path); err == nil {
+		_ = json.Unmarshal(data, &used)
+	}
+	used[strings.ToUpper(strings.TrimSpace(code))] = true
+	outData, err := json.MarshalIndent(used, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, outData, 0600)
+}
+

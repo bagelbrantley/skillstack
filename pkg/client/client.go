@@ -45,8 +45,6 @@ type VerifyCodeResponse struct {
 	Error string `json:"error,omitempty"`
 }
 
-var usedLocalCodes = make(map[string]bool)
-
 // VerifyLocalCryptoCode validates an 8-character code formatted as XXXX-XXXX
 func VerifyLocalCryptoCode(code string) (*VerifyCodeResponse, error) {
 	cleanCode := strings.ToUpper(strings.TrimSpace(code))
@@ -55,11 +53,11 @@ func VerifyLocalCryptoCode(code string) (*VerifyCodeResponse, error) {
 		return nil, fmt.Errorf("invalid code format. Expected format: XXXX-XXXX")
 	}
 
-	if usedLocalCodes[cleanCode] {
+	if config.IsCodeUsedLocally(cleanCode) {
 		return nil, fmt.Errorf("this login code has already been used. Please generate a fresh code in your account")
 	}
 
-	usedLocalCodes[cleanCode] = true
+	_ = config.MarkCodeUsedLocally(cleanCode)
 
 	res := &VerifyCodeResponse{
 		Success: true,
@@ -72,6 +70,11 @@ func VerifyLocalCryptoCode(code string) (*VerifyCodeResponse, error) {
 }
 
 func (c *Client) VerifyCode(code string) (*VerifyCodeResponse, error) {
+	cleanCode := strings.ToUpper(strings.TrimSpace(code))
+	if config.IsCodeUsedLocally(cleanCode) {
+		return nil, fmt.Errorf("this login code has already been used. Please generate a fresh code in your account")
+	}
+
 	// First attempt live network handshake with the server
 	reqBody, _ := json.Marshal(map[string]string{"code": code})
 	resp, err := c.HTTPClient.Post(c.BaseURL+"/api/cli/verify-code", "application/json", bytes.NewBuffer(reqBody))
@@ -87,14 +90,14 @@ func (c *Client) VerifyCode(code string) (*VerifyCodeResponse, error) {
 					Error string `json:"error"`
 				}
 				if jsonErr := json.Unmarshal(body, &errResp); jsonErr == nil && errResp.Error != "" {
+					_ = config.MarkCodeUsedLocally(cleanCode)
 					return nil, fmt.Errorf("%s", errResp.Error)
 				}
 			}
 
 			var result VerifyCodeResponse
 			if jsonErr := json.Unmarshal(body, &result); jsonErr == nil && result.Success {
-				cleanCode := strings.ToUpper(strings.TrimSpace(code))
-				usedLocalCodes[cleanCode] = true
+				_ = config.MarkCodeUsedLocally(cleanCode)
 				return &result, nil
 			}
 		}
