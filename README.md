@@ -102,12 +102,10 @@ skillstack init
 cd engine-kv
 ```
 
-You can provide a project ID explicitly. `clone` and `fetch` are aliases for
-`init`:
+You can provide a project ID explicitly:
 
 ```sh
 skillstack init project-kv-store
-skillstack clone project-kv-store
 ```
 
 ### Run and submit checkpoints
@@ -145,6 +143,7 @@ skillstack run -s
 | `skillstack login` | Authenticate with SkillStack |
 | `skillstack logout` | Remove locally stored credentials |
 | `skillstack status` | Check authentication and session status |
+| `skillstack sync` | Sync progress with SkillStack server |
 | `skillstack list` | List available Guided Projects |
 | `skillstack show <project>` | Show project or lesson details |
 | `skillstack init [project_id]` | Initialize a local project workspace |
@@ -154,6 +153,7 @@ skillstack run -s
 | `skillstack check` | Check Go, Git, and environment readiness |
 | `skillstack update` | Update CLI to the latest version |
 | `skillstack version` | Display version and build information |
+| `skillstack completion` | Generate shell autocompletion script |
 
 Every command supports `--help`:
 

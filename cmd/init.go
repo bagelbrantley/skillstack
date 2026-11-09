@@ -10,7 +10,7 @@ import (
 
 var initCmd = &cobra.Command{
 	Use:     "init [project_id]",
-	Aliases: []string{"clone", "fetch"},
+	Aliases: []string{"clone"},
 	Short:   "Initialize local workspace files for a Guided Project",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		out := cmd.OutOrStdout()

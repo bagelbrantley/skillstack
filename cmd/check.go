@@ -14,7 +14,6 @@ import (
 
 var checkCmd = &cobra.Command{
 	Use:     "check",
-	Aliases: []string{"env", "doctor"},
 	Short:   "Check local workspace environment and software dependencies",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		server := GetServerURL()
